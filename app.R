@@ -55,15 +55,16 @@ server <- function(input, output) {
     }
     product_df <- as.data.frame(do.call('rbind', product_list))
     names(product_df) <- c('full_model', 'mon_year', 'price', 'link')
+    product_df$price <- as.numeric(as.character(product_df$price))
     product_df$mon_year <- parse_number(product_df$mon_year)
     product_df$thirteen_inch <- grepl('13\\.3', product_df$full_model)
     product_df$full_model <- trimws(product_df$full_model)
     product_df$what_youre_looking_for <- ifelse(product_df$mon_year == 2015 & product_df$thirteen_inch, 1, 0)
     
     product_df %>% 
-      arrange(desc(what_youre_looking_for), price) %>% 
       mutate(full_model = paste0("<a href='", link, "'>", full_model, "</a>")) %>% 
-      select(-link)
+      select(-link) %>% 
+      arrange(desc(what_youre_looking_for), price)
   })
   
   output$refurb_dt <- DT::renderDataTable({
@@ -74,7 +75,7 @@ server <- function(input, output) {
               options = list(dom = 't',
                              paging = FALSE,
                              ordering = FALSE,
-                             columnDefs = list(list(visible=FALSE, targets=c(4,5))))) %>% 
+                             columnDefs = list(list(visible=FALSE, targets=c(4, 5))))) %>% 
       formatStyle(
         'what_youre_looking_for',
         target = 'row',
